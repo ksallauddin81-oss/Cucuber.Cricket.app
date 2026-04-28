@@ -1,175 +1,317 @@
-import Logo from "@/components/Logo";
-import LiveMatchCard from "@/components/LiveMatchCard";
-import StadiumAssistant from "@/components/StadiumAssistant";
-import { ChevronDown } from "lucide-react";
 import { useEffect, useState } from "react";
+import { Bell, Flame, CalendarDays, Trophy, Zap } from "lucide-react";
+import { motion } from "framer-motion";
+import { useNavigate } from "react-router-dom";
+import AdCard from "../components/AdCard";
+import { translations } from "../translations";
 
-type Score = {
-  r?: number;
-  w?: number;
-  o?: number;
+const getTeamLogo = (team: string) => {
+  return team
+    ?.split(" ")
+    .map((word) => word[0])
+    .join("")
+    .slice(0, 3)
+    .toUpperCase();
 };
 
-type Match = {
-  id?: string;
-  name?: string;
-  status?: string;
-  team1?: string;
-  team2?: string;
-  score?: Score[];
+const isIPL = (match: any) => {
+  const text = `${match.name || ""} ${match.team1 || ""} ${match.team2 || ""} ${
+    match.teams?.join(" ") || ""
+  }`.toLowerCase();
+
+  return (
+    text.includes("ipl") ||
+    text.includes("indian premier league") ||
+    text.includes("rcb") ||
+    text.includes("csk") ||
+    text.includes("mi") ||
+    text.includes("pbks") ||
+    text.includes("rr") ||
+    text.includes("gt") ||
+    text.includes("dc") ||
+    text.includes("kkr") ||
+    text.includes("srh") ||
+    text.includes("lsg") ||
+    text.includes("punjab kings") ||
+    text.includes("rajasthan royals") ||
+    text.includes("royal challengers") ||
+    text.includes("chennai super kings") ||
+    text.includes("mumbai indians") ||
+    text.includes("gujarat titans") ||
+    text.includes("delhi capitals") ||
+    text.includes("kolkata knight riders") ||
+    text.includes("sunrisers hyderabad") ||
+    text.includes("lucknow super giants")
+  );
 };
 
 const HomePage = () => {
-  const [pitchExpanded, setPitchExpanded] = useState(false);
-  const [matches, setMatches] = useState<Match[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [showingUpcoming, setShowingUpcoming] = useState(false);
+  const navigate = useNavigate();
+
+  const [homeMatches, setHomeMatches] = useState<any[]>([]);
+  const [hasLive, setHasLive] = useState(false);
+
+  const language = localStorage.getItem("cucuber_language") || "English";
+  const t = translations[language as keyof typeof translations];
+
+  const isLiveMatch = (match: any) => {
+    const status = match.status?.toLowerCase() || "";
+
+    return (
+      match.matchStarted === true ||
+      status.includes("live") ||
+      status.includes("innings") ||
+      status.includes("need") ||
+      status.includes("trail") ||
+      status.includes("lead") ||
+      status.includes("opt to") ||
+      status.includes("toss") ||
+      status.includes("elected") ||
+      status.includes("choose")
+    );
+  };
 
   useEffect(() => {
-    const fetchMatches = async () => {
-      try {
-        const liveRes = await fetch("http://localhost:8000/api/live");
-        const liveData = await liveRes.json();
+    let interval: any;
 
-        console.log("LIVE:", liveData);
+    const fetchHomeMatches = () => {
+      fetch(`http://127.0.0.1:8000/api/matches?t=${Date.now()}`, {
+        cache: "no-store",
+      })
+        .then((res) => res.json())
+        .then((data) => {
+          const live = (data.live || [])
+            .filter(isLiveMatch)
+            .sort((a: any, b: any) => {
+              const aIPL = isIPL(a) ? 1 : 0;
+              const bIPL = isIPL(b) ? 1 : 0;
+              return bIPL - aIPL;
+            });
 
-        if (liveData.data && liveData.data.length > 0) {
-          setMatches(liveData.data);
-          setShowingUpcoming(false);
-        } else {
-          const upcomingRes = await fetch("http://localhost:8000/api/upcoming");
-          const upcomingData = await upcomingRes.json();
+          const upcoming = (data.upcoming || []).sort((a: any, b: any) => {
+            const aIPL = isIPL(a) ? 1 : 0;
+            const bIPL = isIPL(b) ? 1 : 0;
+            return bIPL - aIPL;
+          });
 
-          console.log("UPCOMING:", upcomingData);
+          const recent = data.recent || [];
+          const all = data.all || [];
 
-          setMatches(upcomingData.data || []);
-          setShowingUpcoming(true);
-        }
-      } catch (err) {
-        console.error(err);
-      } finally {
-        setLoading(false);
-      }
+          if (live.length > 0) {
+            setHasLive(true);
+            setHomeMatches(live.slice(0, 5));
+          } else {
+            setHasLive(false);
+            setHomeMatches(
+              upcoming.length > 0
+                ? upcoming.slice(0, 5)
+                : recent.length > 0
+                ? recent.slice(0, 5)
+                : all.slice(0, 5)
+            );
+          }
+        })
+        .catch((err) => console.error("HOME MATCH ERROR:", err));
     };
 
-    fetchMatches();
+    fetchHomeMatches();
 
-    const interval = setInterval(fetchMatches, 1000);
+    // refresh every 10 seconds
+    interval = setInterval(fetchHomeMatches, 10000);
 
     return () => clearInterval(interval);
   }, []);
 
   return (
-    <div className="space-y-6 animate-float-up">
-      <div className="flex items-center justify-between">
-        <Logo />
+    <div className="min-h-screen text-white pb-28 bg-[radial-gradient(circle_at_top,#22c55e_0%,#0f172a_35%,#020617_100%)]">
+      <div className="px-5 pt-8">
+        <div className="rounded-[2rem] p-5 bg-white/10 border border-white/20 shadow-2xl backdrop-blur-xl">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-green-300 text-sm font-semibold">
+                Welcome to
+              </p>
 
-        <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-gradient-to-r from-red-500/20 to-orange-400/20 border border-red-400/30 shadow">
-          <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse" />
-          <span className="text-xs font-semibold text-red-500">
-            {loading
-              ? "Loading..."
-              : showingUpcoming
-              ? `${matches.length} Upcoming`
-              : `${matches.length} Live`}
-          </span>
+              <h1 className="text-4xl font-black tracking-tight">
+                Cucuber 🏏
+              </h1>
+
+              <p className="text-gray-300 text-sm mt-1">
+                Live cricket. Smart alerts. AI match vibes.
+              </p>
+            </div>
+
+            <div className="w-16 h-16 rounded-3xl bg-gradient-to-br from-green-400 to-yellow-400 flex items-center justify-center text-3xl shadow-lg">
+              🏆
+            </div>
+          </div>
         </div>
       </div>
 
-      <section className="space-y-3">
-        <h2 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-          {showingUpcoming ? "Upcoming Matches" : "Live Matches"}
-        </h2>
+      <div className="grid grid-cols-3 gap-3 px-5 mt-5">
+        <button
+          onClick={() => navigate("/matches")}
+          className="rounded-2xl bg-white/10 border border-white/10 p-4 text-center hover:bg-white/15 transition"
+        >
+          <Flame className="mx-auto text-orange-300 mb-2" />
+          <p className="text-xs font-semibold">{t.liveMatches}</p>
+        </button>
 
-        {loading && (
-          <p className="text-sm text-muted-foreground">Loading matches...</p>
-        )}
+        <button
+          onClick={() => navigate("/alerts")}
+          className="rounded-2xl bg-white/10 border border-white/10 p-4 text-center hover:bg-white/15 transition"
+        >
+          <Bell className="mx-auto text-yellow-300 mb-2" />
+          <p className="text-xs font-semibold">{t.alerts}</p>
+        </button>
 
-        {!loading && matches.length === 0 && (
-          <p className="text-sm text-muted-foreground">
-            No matches available
-          </p>
-        )}
+        <button
+          onClick={() => navigate("/chat")}
+          className="rounded-2xl bg-white/10 border border-white/10 p-4 text-center hover:bg-white/15 transition"
+        >
+          <Zap className="mx-auto text-purple-300 mb-2" />
+          <p className="text-xs font-semibold">{t.ai}</p>
+        </button>
+      </div>
 
-        {!loading && matches.length > 0 && (
-          <div className="space-y-4">
-            {matches.map((match, index) => {
-              const team1Score =
-                match.score && match.score[0]
-                  ? `${match.score[0].r ?? 0}/${match.score[0].w ?? 0} (${match.score[0].o ?? 0})`
-                  : showingUpcoming
-                  ? "Yet to Start"
-                  : "-";
+      <div className="px-5 mt-8">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-2xl font-black">
+            {hasLive ? "Live Matches" : "Featured Matches"}
+          </h2>
 
-              const team2Score =
-                match.score && match.score[1]
-                  ? `${match.score[1].r ?? 0}/${match.score[1].w ?? 0} (${match.score[1].o ?? 0})`
-                  : showingUpcoming
-                  ? "Yet to Start"
-                  : "-";
+          <span className="text-xs px-3 py-1 rounded-full bg-red-500/20 text-red-300 border border-red-400/30">
+            {hasLive ? "LIVE" : "MATCHES"}
+          </span>
+        </div>
+
+        {homeMatches.length === 0 ? (
+          <div className="rounded-[2rem] bg-white/10 border border-white/10 p-6 text-center">
+            <Trophy className="mx-auto mb-3 text-gray-300" size={34} />
+            <p className="text-gray-300">No matches found right now</p>
+          </div>
+        ) : (
+          <div className="flex gap-4 overflow-x-auto pb-3 snap-x snap-mandatory scrollbar-hide">
+            {homeMatches.map((match, index) => {
+              const team1 = match.teams?.[0] || match.team1 || "Team 1";
+              const team2 = match.teams?.[1] || match.team2 || "Team 2";
+
+              const team1Logo = match.teamInfo?.[0]?.img;
+              const team2Logo = match.teamInfo?.[1]?.img;
+
+              const scoreText =
+                match.score?.length > 0
+                  ? `${match.score[0].r}/${match.score[0].w} (${match.score[0].o})`
+                  : "VS";
 
               return (
-                <div
+                <motion.div
                   key={match.id || index}
-                  className={`rounded-2xl p-[1px] ${
-                    index % 2 === 0
-                      ? "bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500"
-                      : "bg-gradient-to-r from-green-400 via-cyan-400 to-blue-500"
-                  }`}
+                  onClick={() =>
+                    navigate(`/matches/${match.id || index}`, {
+                      state: match,
+                    })
+                  }
+                  whileHover={{ scale: 1.02 }}
+                  className="cursor-pointer min-w-[320px] snap-center rounded-[2rem] bg-[#2f2f2f] border border-white/15 p-6 shadow-2xl"
                 >
-                  <div className="rounded-2xl bg-white/10 dark:bg-black/30 backdrop-blur-xl p-2">
-                    <LiveMatchCard
-                      team1={match.team1 || "Team 1"}
-                      team1Score={team1Score}
-                      team2={match.team2 || "Team 2"}
-                      team2Score={team2Score}
-                      status={
-                        match.status ||
-                        (showingUpcoming ? "Match yet to start" : "Live")
-                      }
-                      matchType={
-                        showingUpcoming ? "Upcoming Match" : "Live Match"
-                      }
-                      progress={showingUpcoming ? 0 : 70}
-                    />
+                  <div className="flex justify-between gap-3">
+                    <div>
+                      <h3 className="text-xl font-black">
+                        {match.name || "Cricket Match"}
+                      </h3>
+
+                      <p className="text-sm text-gray-300 mt-1">
+                        {match.venue || "Venue updating soon"}
+                      </p>
+                    </div>
+
+                    {isIPL(match) && (
+                      <span className="h-fit text-[10px] px-2 py-1 rounded-full bg-yellow-400 text-black font-black">
+                        IPL
+                      </span>
+                    )}
                   </div>
-                </div>
+
+                  <div className="h-px bg-white/15 my-5" />
+
+                  <div className="flex items-center justify-between">
+                    <div className="text-center w-[110px]">
+                      {team1Logo ? (
+                        <img
+                          src={team1Logo}
+                          alt={team1}
+                          className="w-14 h-14 mx-auto rounded-full bg-white p-1 object-cover"
+                          onError={(e) => {
+                            e.currentTarget.style.display = "none";
+                          }}
+                        />
+                      ) : (
+                        <div className="w-14 h-14 mx-auto rounded-full bg-white/10 flex items-center justify-center font-black">
+                          {getTeamLogo(team1)}
+                        </div>
+                      )}
+
+                      <p className="text-sm font-semibold mt-3">{team1}</p>
+                    </div>
+
+                    <div className="text-center px-2">
+                      <p className="text-xs font-bold">
+                        {hasLive ? "LIVE" : "VS"}
+                      </p>
+
+                      <p className="text-sm font-black text-green-300 mt-1">
+                        {scoreText}
+                      </p>
+                    </div>
+
+                    <div className="text-center w-[110px]">
+                      {team2Logo ? (
+                        <img
+                          src={team2Logo}
+                          alt={team2}
+                          className="w-14 h-14 mx-auto rounded-full bg-white p-1 object-cover"
+                          onError={(e) => {
+                            e.currentTarget.style.display = "none";
+                          }}
+                        />
+                      ) : (
+                        <div className="w-14 h-14 mx-auto rounded-full bg-white/10 flex items-center justify-center font-black">
+                          {getTeamLogo(team2)}
+                        </div>
+                      )}
+
+                      <p className="text-sm font-semibold mt-3">{team2}</p>
+                    </div>
+                  </div>
+
+                  <div className="mt-5 rounded-2xl bg-black/30 border border-white/10 p-3">
+                    <p className="text-green-300 font-semibold text-sm">
+                      {match.status || "Match status updating"}
+                    </p>
+                  </div>
+                </motion.div>
               );
             })}
           </div>
         )}
-      </section>
-
-      <div className="rounded-2xl p-[1px] bg-gradient-to-r from-green-400 via-emerald-400 to-cyan-400 shadow-lg">
-        <div className="rounded-2xl bg-white/10 dark:bg-black/30 backdrop-blur-xl p-3">
-          <StadiumAssistant />
-        </div>
       </div>
 
-      <div className="rounded-2xl p-[1px] bg-gradient-to-r from-purple-400 via-pink-400 to-red-400">
-        <div className="rounded-2xl bg-white/10 dark:bg-black/30 backdrop-blur-xl overflow-hidden">
-          <button
-            onClick={() => setPitchExpanded(!pitchExpanded)}
-            className="w-full flex items-center justify-between p-4"
-          >
-            <span className="font-semibold text-sm">Detailed Pitch Report</span>
+      <div className="px-5 mt-8">
+        <AdCard />
+      </div>
 
-            <ChevronDown
-              size={16}
-              className={`transition-transform ${
-                pitchExpanded ? "rotate-180" : ""
-              }`}
-            />
-          </button>
+      <div className="px-5 mt-8">
+        <div className="rounded-[2rem] bg-gradient-to-r from-purple-600/30 to-pink-600/30 border border-white/20 p-5 shadow-xl">
+          <div className="flex gap-3 items-center mb-3">
+            <CalendarDays className="text-purple-200" />
+            <h2 className="text-xl font-black">Stadium Assistant</h2>
+          </div>
 
-          {pitchExpanded && (
-            <div className="px-4 pb-4 space-y-3">
-              <p className="text-xs text-muted-foreground">
-                The pitch offers even bounce. Spinners will get help later.
-                Toss-winning team likely to bat first.
-              </p>
-            </div>
-          )}
+          <p className="text-sm text-gray-200">
+            Pitch report, weather mood, crowd energy and AI match insights will
+            appear here.
+          </p>
         </div>
       </div>
     </div>

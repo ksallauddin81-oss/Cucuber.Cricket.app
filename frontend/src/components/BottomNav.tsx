@@ -1,19 +1,34 @@
-import { Home, Calendar, Newspaper, Bell, Bot, BarChart3, User } from "lucide-react";
+import {
+  Home,
+  Calendar,
+  Newspaper,
+  Bell,
+  Bot,
+  BarChart3,
+  User,
+} from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
-
-const tabs = [
-  { icon: Home, label: "Home", path: "/" },
-  { icon: Calendar, label: "Matches", path: "/matches" },
-  { icon: Newspaper, label: "News", path: "/news" },
-  { icon: Bell, label: "Alerts", path: "/alerts" },
-  { icon: Bot, label: "AI", path: "/chat" },
-  { icon: BarChart3, label: "Stats", path: "/stats" },
-  { icon: User, label: "Profile", path: "/profile" },
-];
+import { translations } from "../translations";
 
 const BottomNav = () => {
   const location = useLocation();
   const navigate = useNavigate();
+
+  const language =
+    localStorage.getItem("cucuber_language") || "English";
+
+  const t =
+    translations[language as keyof typeof translations];
+
+  const tabs = [
+    { icon: Home, label: t.home, path: "/" },
+    { icon: Calendar, label: t.matches, path: "/matches" },
+    { icon: Newspaper, label: t.news, path: "/news" },
+    { icon: Bell, label: t.alerts, path: "/alerts" },
+    { icon: Bot, label: t.ai, path: "/chat" },
+    { icon: BarChart3, label: t.stats, path: "/stats" },
+    { icon: User, label: t.profile, path: "/profile" },
+  ];
 
   return (
     <div className="fixed bottom-3 left-0 right-0 flex justify-center z-50">
@@ -37,7 +52,6 @@ const BottomNav = () => {
                 onClick={() => navigate(tab.path)}
                 className="flex flex-col items-center gap-1 flex-1"
               >
-                {/* ICON */}
                 <div
                   className={`p-2 rounded-xl transition-all duration-300 ${
                     isActive
@@ -48,16 +62,14 @@ const BottomNav = () => {
                   <tab.icon size={18} />
                 </div>
 
-                {/* LABEL */}
                 <span
-                  className={`text-[10px] font-medium ${
+                  className={`text-[10px] font-medium text-center ${
                     isActive ? "text-primary" : "text-muted-foreground"
                   }`}
                 >
                   {tab.label}
                 </span>
 
-                {/* ACTIVE DOT */}
                 {isActive && (
                   <div className="w-1 h-1 bg-primary rounded-full animate-pulse" />
                 )}

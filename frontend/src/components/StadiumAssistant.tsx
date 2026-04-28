@@ -1,124 +1,156 @@
-import { CloudRain, Thermometer, Droplets, Users, Zap, TrendingUp } from "lucide-react";
+import { useState } from "react";
 
-const StadiumAssistant = () => (
-  <div className="glass-card p-4 space-y-4 bg-gradient-to-br from-green-500/10 via-transparent to-emerald-500/10 dark:from-green-500/10 dark:to-emerald-500/10">
-    
-    <div className="flex items-center justify-between">
-      <h3 className="font-display font-semibold text-sm">Stadium Assistant</h3>
-      
-      {/* FIXED BADGE */}
-      <span className="text-[9px] px-2 py-0.5 rounded-full 
-        bg-green-500/20 text-green-700 
-        dark:bg-green-500/20 dark:text-green-300 
-        font-medium">
-        AI Powered
-      </span>
-    </div>
+type Match = {
+  id?: string | number;
+  name?: string;
+  title?: string;
+  team1?: string;
+  team2?: string;
+  venue?: string;
+  status?: string;
+  date?: string;
+  time?: string;
+};
 
-    {/* Pitch + Win */}
-    <div className="flex gap-2">
-      
-      {/* Pitch */}
-      <div className="flex-1 rounded-xl p-3 space-y-1 
-        bg-white/60 dark:bg-muted/50 backdrop-blur-sm">
-        
-        <span className="text-[10px] text-muted-foreground">Pitch</span>
+type Props = {
+  match?: Match;
+};
 
-        <p className="text-xs font-semibold 
-          text-green-700 dark:text-neon-green">
-          Batting Friendly
-        </p>
+function getPitchReport(venue: string) {
+  const v = venue.toLowerCase();
 
-        <div className="flex gap-0.5 mt-1">
-          {[1, 2, 3, 4, 5].map((i) => (
-            <div 
-              key={i} 
-              className={`h-1 flex-1 rounded-full ${
-                i <= 4 
-                  ? "bg-green-500 dark:bg-primary" 
-                  : "bg-muted"
-              }`} 
-            />
-          ))}
+  if (v.includes("chennai") || v.includes("chepauk")) {
+    return "Spin-friendly pitch. Batters need to settle first. Spinners can get strong help in middle overs.";
+  }
+
+  if (v.includes("mumbai") || v.includes("wankhede")) {
+    return "Good batting surface with bounce. Pacers may get swing early, but chasing is often easier because of dew.";
+  }
+
+  if (v.includes("bengaluru") || v.includes("chinnaswamy")) {
+    return "High-scoring ground. Short boundaries help batters. Bowlers need variations and yorkers.";
+  }
+
+  if (v.includes("kolkata") || v.includes("eden")) {
+    return "Balanced surface. Batting gets easier later. Spinners and cutters can be useful.";
+  }
+
+  if (v.includes("hyderabad")) {
+    return "Usually good for batting, but slower balls and spin can work as match goes deeper.";
+  }
+
+  if (v.includes("delhi")) {
+    return "Can be slightly slow. Spinners may get grip. A score around 160-180 can be competitive depending on pitch.";
+  }
+
+  if (v.includes("ahmedabad") || v.includes("narendra modi")) {
+    return "Big ground with balanced pitch. Pacers get bounce, batters get value if they time well.";
+  }
+
+  return "Pitch report depends on venue. Usually, dry pitch helps spinners, green pitch helps pacers, and flat pitch helps batting.";
+}
+
+function getWeatherNote(venue: string) {
+  const v = venue.toLowerCase();
+
+  if (v.includes("mumbai") || v.includes("chennai") || v.includes("hyderabad")) {
+    return "Warm conditions expected. Dew may become important in night matches, so chasing can get easier.";
+  }
+
+  if (v.includes("bengaluru")) {
+    return "Weather can change quickly. Rain interruptions are possible sometimes, so teams may prefer chasing.";
+  }
+
+  if (v.includes("delhi") || v.includes("ahmedabad")) {
+    return "Hot and dry conditions can affect stamina. Spinners may get more help if surface becomes dry.";
+  }
+
+  return "For exact live weather, connect a weather API later. Current smart estimate is based on venue conditions.";
+}
+
+function getTossSuggestion(venue: string) {
+  const v = venue.toLowerCase();
+
+  if (
+    v.includes("mumbai") ||
+    v.includes("wankhede") ||
+    v.includes("bengaluru") ||
+    v.includes("chinnaswamy")
+  ) {
+    return "Winning the toss team may prefer bowling first because chasing can be easier.";
+  }
+
+  if (v.includes("chennai") || v.includes("chepauk")) {
+    return "Winning the toss team may prefer batting first if pitch looks dry, because spin can increase later.";
+  }
+
+  return "Toss decision depends on pitch, dew, weather, and team strength.";
+}
+
+export default function StadiumAssistant({ match }: Props) {
+  const [open, setOpen] = useState(false);
+
+  const matchName =
+    match?.name ||
+    match?.title ||
+    `${match?.team1 || "Team A"} vs ${match?.team2 || "Team B"}`;
+
+  const venue = match?.venue || "Venue not available";
+
+  const pitchReport = getPitchReport(venue);
+  const weatherNote = getWeatherNote(venue);
+  const tossSuggestion = getTossSuggestion(venue);
+
+  return (
+    <div className="rounded-3xl bg-zinc-900 p-4 shadow-lg text-white">
+      <div className="flex items-center justify-between gap-3">
+        <div>
+          <p className="text-xs text-pink-400 mb-1">AI Stadium Assistant</p>
+          <h2 className="text-lg font-bold">{matchName}</h2>
+          <p className="text-sm text-zinc-400">{venue}</p>
         </div>
+
+        <button
+          onClick={() => setOpen(!open)}
+          className="rounded-xl bg-gradient-to-r from-purple-600 via-pink-500 to-orange-500 px-4 py-2 text-sm font-semibold"
+        >
+          {open ? "Hide" : "Analyze"}
+        </button>
       </div>
 
-      {/* Win Probability */}
-      <div className="flex-1 rounded-xl p-3 space-y-1 
-        bg-white/60 dark:bg-muted/50 backdrop-blur-sm">
-        
-        <span className="text-[10px] text-muted-foreground">Win Probability</span>
+      {open && (
+        <div className="mt-4 space-y-3">
+          <div className="rounded-2xl bg-[#070b16] p-3">
+            <p className="text-sm font-semibold text-white">🏟️ Stadium Report</p>
+            <p className="text-sm text-zinc-400 mt-1">
+              This report is generated from selected match venue and cricket conditions.
+            </p>
+          </div>
 
-        <div className="flex items-end gap-1">
-          <TrendingUp size={14} className="text-orange-500 dark:text-neon-orange" />
-          <span className="text-xs font-bold text-orange-600 dark:text-neon-orange">
-            IND 67%
-          </span>
+          <div className="rounded-2xl bg-[#070b16] p-3">
+            <p className="text-sm font-semibold text-white">🌱 Pitch Report</p>
+            <p className="text-sm text-zinc-400 mt-1">{pitchReport}</p>
+          </div>
+
+          <div className="rounded-2xl bg-[#070b16] p-3">
+            <p className="text-sm font-semibold text-white">🌦️ Weather Forecast</p>
+            <p className="text-sm text-zinc-400 mt-1">{weatherNote}</p>
+          </div>
+
+          <div className="rounded-2xl bg-[#070b16] p-3">
+            <p className="text-sm font-semibold text-white">🪙 Toss Suggestion</p>
+            <p className="text-sm text-zinc-400 mt-1">{tossSuggestion}</p>
+          </div>
+
+          <div className="rounded-2xl bg-gradient-to-r from-purple-600/30 via-pink-500/30 to-orange-500/30 p-3">
+            <p className="text-sm font-semibold text-white">🤖 AI Insight</p>
+            <p className="text-sm text-zinc-300 mt-1">
+              For best accuracy, connect live weather API + match venue API later.
+              Right now, Cucuber AI gives smart cricket-based venue analysis.
+            </p>
+          </div>
         </div>
-
-        <div className="w-full h-1.5 rounded-full bg-muted overflow-hidden mt-1">
-          <div 
-            className="h-full rounded-full 
-              bg-gradient-to-r 
-              from-orange-400 to-green-500 
-              dark:from-neon-orange dark:to-accent"
-            style={{ width: "67%" }} 
-          />
-        </div>
-      </div>
+      )}
     </div>
-
-    {/* Weather */}
-    <div className="flex gap-3">
-      
-      <div className="flex items-center gap-1.5 text-[11px]">
-        <CloudRain size={14} className="text-blue-500 dark:text-neon-blue" />
-        <span className="text-muted-foreground">
-          Rain: <span className="text-foreground font-medium">12%</span>
-        </span>
-      </div>
-
-      <div className="flex items-center gap-1.5 text-[11px]">
-        <Thermometer size={14} className="text-orange-500 dark:text-neon-orange" />
-        <span className="text-foreground font-medium">28°C</span>
-      </div>
-
-      <div className="flex items-center gap-1.5 text-[11px]">
-        <Droplets size={14} className="text-blue-500 dark:text-neon-blue" />
-        <span className="text-foreground font-medium">65%</span>
-      </div>
-    </div>
-
-    {/* Crowd */}
-    <div className="rounded-xl p-3 space-y-2 
-      bg-white/60 dark:bg-muted/50 backdrop-blur-sm">
-      
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-1.5">
-          <Users size={14} className="text-muted-foreground" />
-          <span className="text-[11px] text-muted-foreground">Crowd</span>
-        </div>
-        <span className="text-[11px] font-medium">42,500 / 55,000</span>
-      </div>
-
-      <div className="w-full h-1.5 rounded-full bg-muted overflow-hidden">
-        <div 
-          className="h-full rounded-full 
-            bg-gradient-to-r from-green-400 to-blue-400 
-            dark:from-neon-green dark:to-neon-blue"
-          style={{ width: "77%" }} 
-        />
-      </div>
-
-      <div className="flex items-center gap-1.5">
-        <Zap size={12} className="text-orange-500 dark:text-neon-orange" />
-        <span className="text-[10px] font-medium 
-          text-orange-600 dark:text-neon-orange">
-          Energy: HIGH
-        </span>
-      </div>
-    </div>
-  </div>
-);
-
-export default StadiumAssistant;
+  );
+}
