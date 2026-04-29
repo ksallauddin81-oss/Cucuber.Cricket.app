@@ -9,6 +9,7 @@ import {
   Trophy,
   Activity,
   Trash2,
+  MicOff,
 } from "lucide-react";
 import AdCard from "../components/AdCard";
 
@@ -18,9 +19,18 @@ type ChatMessage = {
   time: string;
 };
 
+declare global {
+  interface Window {
+    SpeechRecognition: any;
+    webkitSpeechRecognition: any;
+  }
+}
+
 export default function ChatPage() {
   const [message, setMessage] = useState("");
   const [typing, setTyping] = useState(false);
+  const [listening, setListening] = useState(false);
+  const recognitionRef = useRef<any>(null);
 
   const getNow = () =>
     new Date().toLocaleTimeString([], {
@@ -41,6 +51,80 @@ export default function ChatPage() {
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, typing]);
+
+  useEffect(() => {
+    const SpeechRecognition =
+      window.SpeechRecognition || window.webkitSpeechRecognition;
+
+    if (!SpeechRecognition) return;
+
+    const recognition = new SpeechRecognition();
+    recognition.lang = "en-IN";
+    recognition.continuous = false;
+    recognition.interimResults = false;
+
+    recognition.onstart = () => {
+      setListening(true);
+    };
+
+    recognition.onresult = (event: any) => {
+      const spokenText = event.results[0][0].transcript;
+      setMessage(spokenText);
+
+      setTimeout(() => {
+        sendMessage(spokenText);
+      }, 300);
+    };
+
+    recognition.onerror = () => {
+      setListening(false);
+      setMessages((prev) => [
+        ...prev,
+        {
+          role: "ai",
+          text: "🎤 Mic error. Please allow microphone permission and try again.",
+          time: getNow(),
+        },
+      ]);
+    };
+
+    recognition.onend = () => {
+      setListening(false);
+    };
+
+    recognitionRef.current = recognition;
+  }, []);
+
+  const startListening = () => {
+    if (typing) return;
+
+    if (!recognitionRef.current) {
+      setMessages((prev) => [
+        ...prev,
+        {
+          role: "ai",
+          text: "🎤 Voice input is not supported in this browser. Try Chrome or Edge.",
+          time: getNow(),
+        },
+      ]);
+      return;
+    }
+
+    try {
+      recognitionRef.current.start();
+    } catch {
+      setListening(false);
+    }
+  };
+
+  const stopListening = () => {
+    try {
+      recognitionRef.current?.stop();
+      setListening(false);
+    } catch {
+      setListening(false);
+    }
+  };
 
   const sendMessage = async (quickText?: string) => {
     const finalText = quickText || message;
@@ -70,9 +154,7 @@ export default function ChatPage() {
           ...prev,
           {
             role: "ai",
-            text:
-              data.response ||
-              "Sorry, I couldn't understand that right now.",
+            text: data.response || "Sorry, I couldn't understand that right now.",
             time: getNow(),
           },
         ]);
@@ -153,6 +235,12 @@ export default function ChatPage() {
             Live scores, prediction, pitch, squads and match insights.
           </p>
 
+          {listening && (
+            <p className="mt-3 text-sm text-cyan-300 animate-pulse font-semibold">
+              🎤 Listening... speak now
+            </p>
+          )}
+
           <div className="grid grid-cols-3 gap-3 mt-5">
             <div className="rounded-2xl bg-cyan-400/10 border border-cyan-300/20 p-3">
               <Activity className="mx-auto text-cyan-300 mb-1" size={20} />
@@ -177,10 +265,23 @@ export default function ChatPage() {
             <p className="font-semibold text-sm">Analysis</p>
           </div>
 
-          <div className="rounded-2xl bg-purple-400/10 border border-purple-300/20 p-4">
-            <Mic className="text-purple-300 mb-2" />
-            <p className="font-semibold text-sm">Voice</p>
-          </div>
+          <button
+            onClick={listening ? stopListening : startListening}
+            className={`rounded-2xl border p-4 text-left transition ${
+              listening
+                ? "bg-red-500/20 border-red-300/40"
+                : "bg-purple-400/10 border-purple-300/20"
+            }`}
+          >
+            {listening ? (
+              <MicOff className="text-red-300 mb-2 animate-pulse" />
+            ) : (
+              <Mic className="text-purple-300 mb-2" />
+            )}
+            <p className="font-semibold text-sm">
+              {listening ? "Stop Mic" : "Voice"}
+            </p>
+          </button>
 
           <div className="rounded-2xl bg-pink-400/10 border border-pink-300/20 p-4">
             <Brain className="text-pink-300 mb-2" />
@@ -251,11 +352,23 @@ export default function ChatPage() {
 
       <div className="fixed bottom-20 left-0 right-0 px-4 z-20">
         <div className="max-w-xl mx-auto flex items-center gap-3 rounded-3xl bg-[#101827]/90 border border-white/15 backdrop-blur-xl p-3 shadow-2xl">
+          <button
+            onClick={listening ? stopListening : startListening}
+            disabled={typing}
+            className={`w-12 h-12 rounded-2xl flex items-center justify-center shadow-lg transition disabled:opacity-50 ${
+              listening
+                ? "bg-red-500 animate-pulse"
+                : "bg-white/10 border border-white/15"
+            }`}
+          >
+            {listening ? <MicOff size={20} /> : <Mic size={20} />}
+          </button>
+
           <input
             value={message}
             onChange={(e) => setMessage(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && sendMessage()}
-            placeholder="Ask Cucuber AI..."
+            placeholder={listening ? "Listening..." : "Ask Cucuber AI..."}
             className="flex-1 bg-transparent outline-none text-white placeholder:text-gray-400 px-3"
           />
 
