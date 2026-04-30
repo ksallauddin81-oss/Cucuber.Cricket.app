@@ -64,8 +64,6 @@ export default function NewsPage() {
         const res = await fetch("http://127.0.0.1:8000/api/news");
         const data = await res.json();
 
-        console.log("NEWS API DATA:", data);
-
         if (data.status === "error" || data.error) {
           setError(data.message || data.error || "News API error");
         }
@@ -78,7 +76,6 @@ export default function NewsPage() {
 
         setNews(articles);
       } catch (err) {
-        console.error("Error fetching news:", err);
         setError("Unable to fetch news from backend.");
       } finally {
         setLoading(false);
@@ -89,21 +86,19 @@ export default function NewsPage() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-white text-black dark:bg-[#070b16] dark:text-white px-4 py-5 pb-24 transition-all duration-300">
-      <h1 className="text-xl font-bold mb-5">{t.latestNews}</h1>
+    <div className="min-h-screen bg-[radial-gradient(circle_at_top,#22c55e_0%,#0f172a_35%,#020617_100%)] text-white px-4 py-5 pb-24 transition-all duration-300">
+      <h1 className="text-2xl font-black mb-5">{t.latestNews}</h1>
 
-      {loading && (
-        <p className="text-zinc-600 dark:text-zinc-400">{text.loading}</p>
-      )}
+      {loading && <p className="text-white/70">{text.loading}</p>}
 
       {!loading && error && (
-        <p className="text-red-500 dark:text-red-400 mb-4">
+        <p className="text-red-400 mb-4">
           {text.error}: {error}
         </p>
       )}
 
       {!loading && news.length === 0 && (
-        <p className="text-zinc-600 dark:text-zinc-400">{text.noNews}</p>
+        <p className="text-white/70">{text.noNews}</p>
       )}
 
       <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">

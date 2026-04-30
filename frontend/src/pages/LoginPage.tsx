@@ -14,36 +14,17 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
   const [language, setLanguage] = useState("English");
 
   const internationalTeams = [
-    "India",
-    "Australia",
-    "England",
-    "Pakistan",
-    "South Africa",
-    "New Zealand",
-    "Sri Lanka",
-    "Bangladesh",
-    "Afghanistan",
-    "West Indies",
-    "Ireland",
-    "Zimbabwe",
+    "India", "Australia", "England", "Pakistan", "South Africa",
+    "New Zealand", "Sri Lanka", "Bangladesh", "Afghanistan",
+    "West Indies", "Ireland", "Zimbabwe",
   ];
 
-  const iplTeams = [
-    "CSK",
-    "MI",
-    "RCB",
-    "KKR",
-    "SRH",
-    "RR",
-    "DC",
-    "PBKS",
-    "GT",
-    "LSG",
-  ];
+  const iplTeams = ["CSK", "MI", "RCB", "KKR", "SRH", "RR", "DC", "PBKS", "GT", "LSG"];
 
   const languages = ["English", "తెలుగు", "हिन्दी"];
 
   function handleLogin() {
+    localStorage.setItem("isLoggedIn", "true");
     localStorage.setItem("cucuber_logged_in", "true");
     localStorage.setItem("cucuber_language", language);
 
@@ -58,6 +39,7 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
       })
     );
 
+    window.dispatchEvent(new Event("authChanged"));
     onLogin();
   }
 

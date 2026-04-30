@@ -21,10 +21,11 @@ body,
 
 body {
   overflow-x: hidden;
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 /* ===============================
-   DARK THEME DEFAULT
+   DARK MODE
 ================================= */
 html.dark,
 html.dark body,
@@ -33,77 +34,81 @@ html.dark #root {
   color: #ffffff !important;
 }
 
+html.dark .app-shell,
+html.dark .page-shell,
 html.dark .min-h-screen {
   background:
     radial-gradient(circle at top center, rgba(0, 255, 170, 0.16), transparent 28%),
     linear-gradient(180deg, #030712 0%, #06111f 35%, #07111f 100%) !important;
-  color: white !important;
+  color: #ffffff !important;
 }
 
 /* ===============================
-   LIGHT THEME FULL APP
+   LIGHT MODE FULL WHITE UI
 ================================= */
 html.light,
 html.light body,
-html.light #root {
-  background: #f8fbff !important;
+html.light #root,
+html.light .app-shell,
+html.light .page-shell,
+html.light .min-h-screen {
+  background: #ffffff !important;
+  background-image: none !important;
   color: #07111f !important;
 }
 
-html.light .min-h-screen,
-html.light main,
-html.light .app,
-html.light .page {
-  background:
-    radial-gradient(circle at top center, rgba(95, 255, 215, 0.35), transparent 32%),
-    linear-gradient(180deg, #f9fcff 0%, #eef6fb 55%, #ffffff 100%) !important;
-  color: #07111f !important;
+/* Remove dark/gradient backgrounds in light mode */
+html.light .bg-slate-950,
+html.light .bg-slate-900,
+html.light .bg-black,
+html.light .bg-zinc-950,
+html.light .bg-neutral-950,
+html.light .bg-\[\#050713\],
+html.light [class*="from-slate"],
+html.light [class*="via-slate"],
+html.light [class*="to-slate"],
+html.light [class*="from-black"],
+html.light [class*="via-black"],
+html.light [class*="to-black"] {
+  background: #ffffff !important;
+  background-image: none !important;
 }
 
 /* ===============================
-   LIGHT MODE CARD / PANEL FIX
+   CARDS / PANELS
 ================================= */
-html.light div[class*="bg-"],
-html.light section[class*="bg-"],
-html.light article[class*="bg-"],
-html.light div[class*="from-"],
-html.light div[class*="via-"],
-html.light div[class*="to-"],
-html.light section[class*="from-"],
-html.light section[class*="via-"],
-html.light section[class*="to-"],
-html.light article[class*="from-"],
-html.light article[class*="via-"],
-html.light article[class*="to-"],
+html.light .bg-white\/5,
+html.light .bg-white\/10,
+html.light .bg-black\/20,
+html.light .bg-black\/30,
 html.light .glass-card,
-html.light .card {
-  background: rgba(255, 255, 255, 0.88) !important;
+html.light .card,
+html.light .theme-card,
+html.light section,
+html.light article {
+  background: #f8fafc !important;
   color: #07111f !important;
   border-color: rgba(15, 23, 42, 0.1) !important;
   box-shadow: 0 12px 35px rgba(15, 23, 42, 0.08) !important;
 }
 
-/* Keep page background light, not white card */
-html.light .min-h-screen[class*="bg-"],
-html.light .min-h-screen[class*="from-"],
-html.light .min-h-screen[class*="via-"],
-html.light .min-h-screen[class*="to-"] {
-  background:
-    radial-gradient(circle at top center, rgba(95, 255, 215, 0.35), transparent 32%),
-    linear-gradient(180deg, #f9fcff 0%, #eef6fb 55%, #ffffff 100%) !important;
+html.dark .glass-card,
+html.dark .card,
+html.dark .theme-card {
+  background: rgba(255, 255, 255, 0.08) !important;
+  color: #ffffff !important;
+  border-color: rgba(255, 255, 255, 0.1) !important;
 }
 
 /* ===============================
    TEXT FIX
 ================================= */
 html.light .text-white,
-html.light h1,
-html.light h2,
-html.light h3,
-html.light h4,
-html.light p,
-html.light span,
-html.light button {
+html.light .text-white\/90,
+html.light .text-white\/80,
+html.light .text-white\/70,
+html.light .text-white\/60,
+html.light .text-white\/50 {
   color: #07111f !important;
 }
 
@@ -114,7 +119,7 @@ html.light .text-slate-400 {
   color: #475569 !important;
 }
 
-/* Keep colored labels */
+/* Keep important colors */
 html.light .text-green-400 {
   color: #16a34a !important;
 }
@@ -131,13 +136,41 @@ html.light .text-purple-400 {
   color: #9333ea !important;
 }
 
+html.light .text-cyan-300,
+html.light .text-cyan-400 {
+  color: #0891b2 !important;
+}
+
+html.light .text-emerald-300,
+html.light .text-emerald-400 {
+  color: #059669 !important;
+}
+
+/* ===============================
+   INPUTS / SELECTS
+================================= */
+html.light input,
+html.light select,
+html.light textarea {
+  background: #ffffff !important;
+  color: #07111f !important;
+  border-color: rgba(15, 23, 42, 0.14) !important;
+}
+
+html.dark input,
+html.dark select,
+html.dark textarea {
+  background: rgba(0, 0, 0, 0.3) !important;
+  color: white !important;
+}
+
 /* ===============================
    BOTTOM NAVBAR
 ================================= */
 html.light nav,
 html.light .bottom-nav,
 html.light [class*="fixed bottom"] {
-  background: rgba(255, 255, 255, 0.95) !important;
+  background: rgba(255, 255, 255, 0.96) !important;
   color: #07111f !important;
   border-color: rgba(15, 23, 42, 0.12) !important;
   box-shadow: 0 12px 35px rgba(15, 23, 42, 0.16) !important;
@@ -161,6 +194,10 @@ button {
 
 button:hover {
   transform: translateY(-1px);
+}
+
+.theme-toggle {
+  z-index: 10000 !important;
 }
 
 /* ===============================

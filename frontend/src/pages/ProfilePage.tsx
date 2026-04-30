@@ -1,212 +1,102 @@
-import { useState } from "react";
-import {
-  User,
-  Mail,
-  Trophy,
-  Bell,
-  Settings,
-  LogOut,
-  Star,
-  Edit3,
-  Languages,
-} from "lucide-react";
+import { useEffect, useState } from "react";
+import { LogOut, Globe, User, Bell, Shield } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { translations } from "../translations";
 
 export default function ProfilePage() {
-  const savedUser = localStorage.getItem("cucuber_user");
+  const navigate = useNavigate();
 
-  const initialUser = savedUser
-    ? JSON.parse(savedUser)
-    : {
-        name: "Cucuber User",
-        email: "user@cucuber.com",
-        internationalTeam: "India",
-        iplTeam: "CSK",
-        language: "English",
-      };
-
-  const [user, setUser] = useState(initialUser);
-  const [isEditingTeams, setIsEditingTeams] = useState(false);
-
-  const [internationalTeam, setInternationalTeam] = useState(
-    user.internationalTeam || "India"
+  const [language, setLanguage] = useState(
+    localStorage.getItem("cucuber_language") || "English"
   );
-  const [iplTeam, setIplTeam] = useState(user.iplTeam || "CSK");
-  const [language, setLanguage] = useState(user.language || "English");
 
   const t =
-    translations[(localStorage.getItem("cucuber_language") || "English") as keyof typeof translations];
+    translations[language as keyof typeof translations] ||
+    translations.English;
 
-  const internationalTeams = [
-    "India", "Australia", "England", "Pakistan", "South Africa",
-    "New Zealand", "Sri Lanka", "Bangladesh", "Afghanistan",
-    "West Indies", "Ireland", "Zimbabwe",
-  ];
+  useEffect(() => {
+    localStorage.setItem("cucuber_language", language);
+    window.dispatchEvent(new Event("languageChanged"));
+  }, [language]);
 
-  const iplTeams = ["CSK", "MI", "RCB", "KKR", "SRH", "RR", "DC", "PBKS", "GT", "LSG"];
+  const handleLogout = () => {
+    localStorage.removeItem("isLoggedIn");
+    localStorage.removeItem("cucuber_user");
+    localStorage.removeItem("cucuber_token");
+    localStorage.removeItem("cucuber_phone");
+
+    window.dispatchEvent(new Event("authChanged"));
+    navigate("/login");
+  };
 
   const languages = ["English", "తెలుగు", "हिन्दी"];
 
-  const stats = [
-    { label: "Saved Matches", value: "12" },
-    { label: "Alerts", value: "8" },
-    { label: "Wins Tracked", value: "24" },
-  ];
-
-  function saveProfileOptions() {
-    const updatedUser = {
-      ...user,
-      internationalTeam,
-      iplTeam,
-      language,
-    };
-
-    localStorage.setItem("cucuber_user", JSON.stringify(updatedUser));
-    localStorage.setItem("cucuber_language", language);
-
-    setUser(updatedUser);
-    setIsEditingTeams(false);
-
-    window.location.reload();
-  }
-
-  function handleLogout() {
-    localStorage.removeItem("cucuber_logged_in");
-    localStorage.removeItem("cucuber_user");
-    window.location.reload();
-  }
-
   return (
-    <div className="min-h-screen pb-28 bg-[#050713] text-white relative overflow-hidden">
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,#22d3ee55,transparent_30%),radial-gradient(circle_at_top_right,#a855f755,transparent_30%),radial-gradient(circle_at_bottom,#ec489944,transparent_35%)] animate-pulse" />
-
-      <div className="relative z-10 px-5 pt-8">
-        <h1 className="text-3xl font-extrabold bg-gradient-to-r from-cyan-300 via-purple-300 to-pink-300 bg-clip-text text-transparent">
-          {t.profile}
-        </h1>
-
-        <div className="mt-6 rounded-[32px] bg-white/10 border border-white/15 backdrop-blur-xl p-6 shadow-2xl">
+    <div className="min-h-screen px-4 pt-5 pb-28 bg-gradient-to-br from-slate-950 via-slate-900 to-black text-white">
+      <div className="max-w-md mx-auto space-y-5">
+        {/* Header */}
+        <div className="rounded-3xl border border-white/10 bg-white/5 backdrop-blur-xl p-5 shadow-xl">
           <div className="flex items-center gap-4">
-            <div className="w-16 h-16 rounded-full bg-gradient-to-br from-cyan-300 via-purple-400 to-pink-400 p-1">
-              <div className="w-full h-full rounded-full bg-[#101827] flex items-center justify-center">
-                <User size={28} />
-              </div>
+            <div className="h-16 w-16 rounded-full bg-gradient-to-br from-cyan-400 to-emerald-400 flex items-center justify-center shadow-lg">
+              <User className="h-8 w-8 text-black" />
             </div>
 
             <div>
-              <h2 className="text-lg font-bold">{user.name}</h2>
-              <p className="text-sm text-gray-300 flex items-center gap-1">
-                <Mail size={14} /> {user.email}
-              </p>
+              <h1 className="text-2xl font-black">
+                {t?.profile || "Profile"}
+              </h1>
+              <p className="text-sm text-white/60">Cucuber User</p>
             </div>
           </div>
         </div>
 
-        <div className="grid grid-cols-3 gap-3 mt-5">
-          {stats.map((item) => (
-            <div
-              key={item.label}
-              className="rounded-2xl bg-white/10 border border-white/15 p-4 text-center backdrop-blur-xl"
-            >
-              <p className="text-xl font-bold">{item.value}</p>
-              <p className="text-[11px] text-gray-400">{item.label}</p>
-            </div>
-          ))}
-        </div>
-
-        <div className="mt-6 rounded-3xl bg-gradient-to-r from-cyan-500/20 to-purple-500/20 border border-white/15 p-5 backdrop-blur-xl">
-          <div className="flex items-center justify-between gap-3">
-            <div className="flex items-center gap-3">
-              <Trophy className="text-yellow-300" />
-              <div>
-                <h3 className="font-bold">{t.favoriteTeams}</h3>
-                <p className="text-sm text-gray-300">
-                  {t.international}: {user.internationalTeam}
-                </p>
-                <p className="text-sm text-gray-300">
-                  {t.ipl}: {user.iplTeam}
-                </p>
-                <p className="text-sm text-gray-300 flex items-center gap-1">
-                  <Languages size={14} /> {t.language}: {user.language}
-                </p>
-              </div>
-            </div>
-
-            <button
-              onClick={() => setIsEditingTeams(true)}
-              className="rounded-xl bg-white/10 border border-white/15 p-2"
-            >
-              <Edit3 size={16} />
-            </button>
+        {/* Language */}
+        <div className="rounded-3xl border border-white/10 bg-white/5 backdrop-blur-xl p-5 shadow-xl">
+          <div className="flex items-center gap-2 mb-4">
+            <Globe className="h-5 w-5 text-cyan-300" />
+            <h2 className="text-lg font-bold">Language</h2>
           </div>
 
-          {isEditingTeams && (
-            <div className="mt-4 space-y-3">
-              <select
-                value={internationalTeam}
-                onChange={(e) => setInternationalTeam(e.target.value)}
-                className="w-full rounded-2xl bg-[#101827] border border-white/15 px-4 py-3 text-white"
-              >
-                {internationalTeams.map((team) => (
-                  <option key={team}>{team}</option>
-                ))}
-              </select>
-
-              <select
-                value={iplTeam}
-                onChange={(e) => setIplTeam(e.target.value)}
-                className="w-full rounded-2xl bg-[#101827] border border-white/15 px-4 py-3 text-white"
-              >
-                {iplTeams.map((team) => (
-                  <option key={team}>{team}</option>
-                ))}
-              </select>
-
-              <select
-                value={language}
-                onChange={(e) => setLanguage(e.target.value)}
-                className="w-full rounded-2xl bg-[#101827] border border-white/15 px-4 py-3 text-white"
-              >
-                {languages.map((lang) => (
-                  <option key={lang}>{lang}</option>
-                ))}
-              </select>
-
+          <div className="grid grid-cols-3 gap-3">
+            {languages.map((lang) => (
               <button
-                onClick={saveProfileOptions}
-                className="w-full rounded-2xl bg-gradient-to-r from-cyan-500 to-purple-500 py-3 font-bold"
+                key={lang}
+                onClick={() => setLanguage(lang)}
+                className={`rounded-2xl py-3 text-sm font-bold transition-all ${
+                  language === lang
+                    ? "bg-gradient-to-r from-cyan-400 to-emerald-400 text-black shadow-lg"
+                    : "bg-white/10 text-white hover:bg-white/15"
+                }`}
               >
-                {t.saveChanges}
+                {lang}
               </button>
-            </div>
-          )}
+            ))}
+          </div>
         </div>
 
-        <div className="mt-6 space-y-3">
-          <button className="w-full rounded-2xl bg-white/10 border border-white/15 p-4">
-            <span className="flex items-center gap-2">
-              <Bell size={18} /> {t.notifications}
-            </span>
-          </button>
-
-          <button className="w-full rounded-2xl bg-white/10 border border-white/15 p-4">
-            <span className="flex items-center gap-2">
-              <Settings size={18} /> {t.settings}
-            </span>
-          </button>
+        {/* Notifications */}
+        <div className="rounded-3xl border border-white/10 bg-white/5 backdrop-blur-xl p-5 shadow-xl">
+          <div className="flex items-center gap-2">
+            <Bell className="h-5 w-5 text-yellow-300" />
+            <span className="font-semibold">AI Alerts Enabled</span>
+          </div>
         </div>
 
-        <div className="mt-6 rounded-2xl bg-gradient-to-r from-pink-500/20 to-purple-500/20 border border-white/15 p-4 flex items-center gap-3">
-          <Star className="text-yellow-300" />
-          <p className="text-sm">Premium Cricket Experience Enabled</p>
+        {/* Privacy */}
+        <div className="rounded-3xl border border-white/10 bg-white/5 backdrop-blur-xl p-5 shadow-xl">
+          <div className="flex items-center gap-2">
+            <Shield className="h-5 w-5 text-green-300" />
+            <span className="font-semibold">Secure Account</span>
+          </div>
         </div>
 
+        {/* Logout */}
         <button
           onClick={handleLogout}
-          className="mt-6 w-full rounded-2xl bg-red-500/15 border border-red-400/20 p-4 flex items-center justify-center gap-2 text-red-300"
+          className="w-full rounded-3xl py-4 bg-gradient-to-r from-red-500 to-pink-500 font-black text-lg shadow-xl hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-2"
         >
-          <LogOut size={18} />
-          {t.logout}
+          <LogOut className="h-5 w-5" />
+          Logout
         </button>
       </div>
     </div>

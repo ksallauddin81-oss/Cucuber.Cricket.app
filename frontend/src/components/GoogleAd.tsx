@@ -2,7 +2,7 @@ import { useEffect, useRef } from "react";
 
 declare global {
   interface Window {
-    adsbygoogle: any[];
+    adsbygoogle?: any[];
   }
 }
 
@@ -10,22 +10,16 @@ type GoogleAdProps = {
   slot?: string;
 };
 
-export default function GoogleAd({
-  slot = "1570740764",
-}: GoogleAdProps) {
-  const adRef = useRef<HTMLModElement | null>(null);
+export default function GoogleAd({ slot = "1570740764" }: GoogleAdProps) {
+  const pushedRef = useRef(false);
 
   useEffect(() => {
-    try {
-      const loaded =
-        adRef.current?.getAttribute(
-          "data-adsbygoogle-status"
-        );
+    if (pushedRef.current) return;
 
-      if (!loaded) {
-        (window.adsbygoogle =
-          window.adsbygoogle || []).push({});
-      }
+    try {
+      window.adsbygoogle = window.adsbygoogle || [];
+      window.adsbygoogle.push({});
+      pushedRef.current = true;
     } catch (error) {
       console.log("AdSense Error:", error);
     }
@@ -33,12 +27,11 @@ export default function GoogleAd({
 
   return (
     <ins
-      ref={adRef}
       className="adsbygoogle"
       style={{
         display: "block",
         width: "100%",
-        minHeight: "120px",
+        minHeight: "280px",
       }}
       data-ad-client="ca-pub-9073998988181078"
       data-ad-slot={slot}

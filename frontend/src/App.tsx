@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import { Toaster } from "sonner";
+import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 
 import HomePage from "./pages/HomePage";
 import MatchesPage from "./pages/MatchesPage";
@@ -12,90 +11,112 @@ import StatsPage from "./pages/StatsPage";
 import ProfilePage from "./pages/ProfilePage";
 import LoginPage from "./pages/LoginPage";
 
-import SplashScreen from "./components/SplashScreen";
 import BottomNav from "./components/BottomNav";
+import SplashScreen from "./components/SplashScreen";
 import ThemeToggle from "./components/ThemeToggle";
 
-function App() {
-  const [showSplash, setShowSplash] = useState(true);
-  const [fadeSplash, setFadeSplash] = useState(false);
-
+export default function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(
-    localStorage.getItem("cucuber_logged_in") === "true"
+    localStorage.getItem("isLoggedIn") === "true"
   );
 
+  const [showSplash, setShowSplash] = useState(true);
+
   useEffect(() => {
-    const fadeTimer = setTimeout(() => setFadeSplash(true), 6200);
-    const removeTimer = setTimeout(() => setShowSplash(false), 7000);
+    const savedTheme =
+      (localStorage.getItem("theme") as "dark" | "light") || "dark";
+
+    document.documentElement.classList.remove("dark", "light");
+    document.documentElement.classList.add(savedTheme);
+
+    const timer = setTimeout(() => {
+      setShowSplash(false);
+    }, 5200);
+
+    const syncAuth = () => {
+      setIsLoggedIn(localStorage.getItem("isLoggedIn") === "true");
+    };
+
+    window.addEventListener("authChanged", syncAuth);
 
     return () => {
-      clearTimeout(fadeTimer);
-      clearTimeout(removeTimer);
+      clearTimeout(timer);
+      window.removeEventListener("authChanged", syncAuth);
     };
   }, []);
 
   const handleLogin = () => {
-    localStorage.setItem("cucuber_logged_in", "true");
+    localStorage.setItem("isLoggedIn", "true");
     setIsLoggedIn(true);
+    window.dispatchEvent(new Event("authChanged"));
   };
+
+  if (showSplash) {
+    return <SplashScreen />;
+  }
 
   return (
     <Router>
-      {/* Toast Notifications */}
-      <Toaster
-        richColors
-        position="top-center"
-        closeButton
-        duration={4000}
-        theme="dark"
-      />
+      <div className="app-shell min-h-screen pb-20">
+        {isLoggedIn && <ThemeToggle />}
 
-      {/* Splash Screen */}
-      {showSplash && (
-        <div
-          className={`fixed inset-0 z-[100] transition-opacity duration-1000 ${
-            fadeSplash ? "opacity-0" : "opacity-100"
-          }`}
-        >
-          <SplashScreen />
-        </div>
-      )}
+        <Routes>
+          <Route
+            path="/login"
+            element={
+              isLoggedIn ? (
+                <Navigate to="/" replace />
+              ) : (
+                <LoginPage onLogin={handleLogin} />
+              )
+            }
+          />
 
-      {/* Login Screen */}
-      {!showSplash && !isLoggedIn && (
-        <LoginPage onLogin={handleLogin} />
-      )}
+          <Route
+            path="/"
+            element={isLoggedIn ? <HomePage /> : <Navigate to="/login" replace />}
+          />
 
-      {/* Main App */}
-      {!showSplash && isLoggedIn && (
-        <>
-          <ThemeToggle />
+          <Route
+            path="/matches"
+            element={isLoggedIn ? <MatchesPage /> : <Navigate to="/login" replace />}
+          />
 
-          <div className="min-h-screen bg-white text-black dark:bg-[#070b16] dark:text-white transition-all duration-300 pb-[80px]">
-            <Routes>
-              {/* Main Pages */}
-              <Route path="/" element={<HomePage />} />
-              <Route path="/matches" element={<MatchesPage />} />
+          <Route
+            path="/match/:id"
+            element={
+              isLoggedIn ? <MatchDetailPage /> : <Navigate to="/login" replace />
+            }
+          />
 
-              {/* Match Details */}
-              <Route path="/match-detail" element={<MatchDetailPage />} />
-              <Route path="/matches/:id" element={<MatchDetailPage />} />
+          <Route
+            path="/news"
+            element={isLoggedIn ? <NewsPage /> : <Navigate to="/login" replace />}
+          />
 
-              {/* Other Pages */}
-              <Route path="/news" element={<NewsPage />} />
-              <Route path="/alerts" element={<AlertsPage />} />
-              <Route path="/chat" element={<ChatPage />} />
-              <Route path="/stats" element={<StatsPage />} />
-              <Route path="/profile" element={<ProfilePage />} />
-            </Routes>
-          </div>
+          <Route
+            path="/alerts"
+            element={isLoggedIn ? <AlertsPage /> : <Navigate to="/login" replace />}
+          />
 
-          {/* Bottom Navigation */}
-          <BottomNav />
-        </>
-      )}
+          <Route
+            path="/chat"
+            element={isLoggedIn ? <ChatPage /> : <Navigate to="/login" replace />}
+          />
+
+          <Route
+            path="/stats"
+            element={isLoggedIn ? <StatsPage /> : <Navigate to="/login" replace />}
+          />
+
+          <Route
+            path="/profile"
+            element={isLoggedIn ? <ProfilePage /> : <Navigate to="/login" replace />}
+          />
+        </Routes>
+
+        {isLoggedIn && <BottomNav />}
+      </div>
     </Router>
   );
 }
-
-export default App;

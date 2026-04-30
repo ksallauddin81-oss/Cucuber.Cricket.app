@@ -7,7 +7,7 @@ export default function AdCard() {
         Sponsored
       </p>
 
-      <div className="rounded-2xl bg-white/10 dark:bg-black/30 p-3 min-h-[140px]">
+      <div className="rounded-2xl bg-white/10 dark:bg-black/30 p-3 min-h-[300px]">
         <GoogleAd />
       </div>
     </div>
