@@ -1,41 +1,45 @@
-import { Home, Trophy, Newspaper, Bell, Bot, BarChart3, User } from "lucide-react";
-import { NavLink } from "react-router-dom";
-
-const navItems = [
-  { to: "/", icon: Home, label: "Home" },
-  { to: "/matches", icon: Trophy, label: "Matches" },
-  { to: "/news", icon: Newspaper, label: "News" },
-  { to: "/alerts", icon: Bell, label: "Alerts" },
-  { to: "/chat", icon: Bot, label: "AI" },
-  { to: "/stats", icon: BarChart3, label: "Stats" },
-  { to: "/profile", icon: User, label: "Profile" },
-];
+import {
+  Home,
+  Calendar,
+  Newspaper,
+  Bell,
+  Bot,
+  BarChart3,
+  User,
+} from "lucide-react";
+import { useLocation, useNavigate } from "react-router-dom";
 
 export default function BottomNav() {
-  return (
-    <div className="fixed bottom-0 left-0 right-0 z-50 border-t border-white/10 bg-black/80 backdrop-blur-xl">
-      <div className="grid grid-cols-7 gap-1 px-2 py-2">
-        {navItems.map((item) => {
-          const Icon = item.icon;
+  const location = useLocation();
+  const navigate = useNavigate();
 
-          return (
-            <NavLink
-              key={item.to}
-              to={item.to}
-              className={({ isActive }) =>
-                `flex flex-col items-center justify-center rounded-2xl py-2 text-[10px] font-semibold transition ${
-                  isActive
-                    ? "bg-emerald-500 text-black"
-                    : "text-white/70 hover:bg-white/10 hover:text-white"
-                }`
-              }
-            >
-              <Icon size={18} />
-              <span className="mt-1">{item.label}</span>
-            </NavLink>
-          );
-        })}
-      </div>
+  const navItems = [
+    { icon: Home, path: "/" },
+    { icon: Calendar, path: "/matches" },
+    { icon: Newspaper, path: "/news" },
+    { icon: Bell, path: "/alerts" },
+    { icon: Bot, path: "/chat" },
+    { icon: BarChart3, path: "/stats" },
+    { icon: User, path: "/profile" },
+  ];
+
+  return (
+    <div className="fixed bottom-0 left-0 right-0 bg-black border-t border-gray-800 flex justify-around py-3 z-50">
+      {navItems.map(({ icon: Icon, path }) => {
+        const isActive = location.pathname === path;
+
+        return (
+          <button
+            key={path}
+            onClick={() => navigate(path)}
+            className={`flex flex-col items-center text-xs ${
+              isActive ? "text-emerald-400" : "text-gray-400"
+            }`}
+          >
+            <Icon size={22} />
+          </button>
+        );
+      })}
     </div>
   );
 }
